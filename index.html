@@ -45,11 +45,13 @@ birdImg.src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvM
 let W,H,dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));
 function fit(){const r=cvs.getBoundingClientRect();W=Math.floor(r.width*dpr);H=Math.floor(r.height*dpr);cvs.width=W;cvs.height=H;ctx.setTransform(dpr,0,0,dpr,0,0);}
 new ResizeObserver(fit).observe(cvs);fit();
+
 const bird={x:150,y:150,r:18,vx:0,vy:0},stars=[],state={running:false,paused:false,over:false,t:0,spawn:900,last:0,score:0,speed:2.2};
 function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
 function spawn(){const cnt=1+Math.floor(Math.random()*3);for(let i=0;i<cnt;i++){const x=Math.random()*cvs.clientWidth;const s=10+Math.random()*10;stars.push({x,y:-s*2,size:s,vy:state.speed+Math.random()*1.5,rot:Math.random()*Math.PI,spin:Math.random()*0.04-0.02});}}
 function drawStar(x,y,r,rot){ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.beginPath();for(let i=0;i<5;i++){const a=i*(Math.PI*2)/5-Math.PI/2;const ox=Math.cos(a)*r,oy=Math.sin(a)*r;const ia=a+Math.PI/5;const ix=Math.cos(ia)*r*0.5,iy=Math.sin(ia)*r*0.5;if(i===0)ctx.moveTo(ox,oy);else ctx.lineTo(ox,oy);ctx.lineTo(ix,iy);}ctx.closePath();const g=ctx.createRadialGradient(0,0,r*0.1,0,0,r);g.addColorStop(0,"#ffe99a");g.addColorStop(0.6,"#ffd158");g.addColorStop(1,"#ff9c2f");ctx.fillStyle=g;ctx.fill();ctx.restore();}
 function drawBird(){const w=bird.r*2.6,h=bird.r*2;ctx.drawImage(birdImg,bird.x-w/2,bird.y-h/2,w,h);}
+
 let joyCenter=null;const joy=document.getElementById("joystick"),stick=document.getElementById("stick");
 function onDown(e){const t=e.touches?e.touches[0]:e;joyCenter={x:t.clientX,y:t.clientY};joy.style.left=joyCenter.x+"px";joy.style.top=joyCenter.y+"px";joy.style.display="block";e.preventDefault();}
 function onMove(e){if(!joyCenter)return;const t=e.touches?e.touches[0]:e;const dx=t.clientX-joyCenter.x,dy=t.clientY-joyCenter.y;const dist=Math.min(40,Math.hypot(dx,dy));const ang=Math.atan2(dy,dx);const nx=Math.cos(ang)*dist,ny=Math.sin(ang)*dist;stick.style.transform=`translate(${nx}px,${ny}px)`;bird.vx=nx*0.1;bird.vy=ny*0.1;}
@@ -81,5 +83,3 @@ function hit(){state.running=false;const total=parseInt(localStorage.points||0)+
 </script>
 </body>
 </html>
-更新：添加虚拟摇杆、全屏移动、积分商店
-加入虚拟摇杆控制，小鸟可全屏移动，增加积分商店（复活、换色），游戏结束界面可返回主页或进入商店。
