@@ -1,28 +1,24 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>竖屏躲星星 · 摇杆修正版</title>
+<title>竖屏躲星星 · 启动修正版</title>
 <style>
 html,body{margin:0;padding:0;height:100%;background:#0b1020;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;touch-action:none;-webkit-user-select:none;user-select:none}
 #wrap{position:fixed;inset:0;overflow:hidden;background:radial-gradient(ellipse at top,#131a33 0%,#0b1020 60%)}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;z-index:5;font-weight:600;text-shadow:0 2px 8px rgba(0,0,0,.5)}
-.pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:6px 10px}
-.btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:10px;padding:6px 10px}
+.btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:10px;padding:8px 12px}
 .overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:10;background:rgba(0,0,0,.35);backdrop-filter:blur(2px)}
 .overlay.show{display:flex}
 .card{width:min(88vw,460px);background:rgba(20,26,48,.95);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:18px;text-align:center}
 .title{font-size:22px;margin-bottom:10px}
 .subtitle{opacity:.85;font-size:14px;margin-bottom:12px}
 .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.play{border:none;border-radius:12px;padding:10px 14px;font-size:16px;font-weight:700;background:linear-gradient(180deg,#ffd35a,#ff9b2f);color:#2a1500}
-.shop-item{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.05);padding:8px 10px;border-radius:8px;margin:6px 0}
-.shop-btn{border:none;border-radius:8px;padding:6px 10px;background:#ffd35a;color:#2a1500;font-weight:600}
+.play{border:none;border-radius:12px;padding:12px 16px;font-size:16px;font-weight:700;background:linear-gradient(180deg,#ffd35a,#ff9b2f);color:#2a1500}
 #joystick{position:absolute;width:110px;height:110px;margin-left:-55px;margin-top:-55px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.05);display:none;z-index:6}
 #stick{position:absolute;left:50%;top:50%;width:44px;height:44px;margin-left:-22px;margin-top:-22px;border-radius:50%;background:rgba(255,255,255,.55)}
-.hint{font-size:12px;opacity:.8;margin-top:8px}
 </style>
 </head>
 <body>
@@ -31,33 +27,25 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   <div id="joystick"><div id="stick"></div></div>
 
   <div class="hud">
-    <div>生存 <span id="score">0</span> 秒</div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <span class="pill">积分 <span id="pts">0</span></span>
-      <button class="btn" id="shopBtn">商店</button>
-      <button class="btn" id="pauseBtn">暂停</button>
-    </div>
+    <div>存活 <span id="score">0</span>s</div>
+    <button id="pauseBtn" class="btn">暂停</button>
   </div>
 
-  <!-- 开始 -->
-  <div class="overlay show" id="start">
+  <!-- 步骤 1：确认开始 -->
+  <div class="overlay show" id="confirm">
     <div class="card">
       <div class="title">竖屏躲星星</div>
-      <div class="subtitle">按住屏幕任意位置出现“控制中心”，根据相对位移让小鸟一直移动，直到碰到边界或你抬手。</div>
-      <div class="actions"><button class="play" id="startBtn">开始</button></div>
-      <div class="hint">电脑用鼠标拖动模拟。每生存 1 秒 +1 积分。</div>
+      <div class="subtitle">按住屏幕任意位置作为控制中心，相对移动即可操控小鸟，直到碰到屏幕边缘。</div>
+      <div class="actions"><button class="play" id="confirmBtn">确认开始</button></div>
     </div>
   </div>
 
-  <!-- 复活询问 -->
-  <div class="overlay" id="reviveAsk">
+  <!-- 步骤 2：启动游戏 -->
+  <div class="overlay" id="launch">
     <div class="card">
-      <div class="title">使用复活？</div>
-      <div class="subtitle">剩余复活：<b id="reviveLeft">0</b> 次</div>
-      <div class="actions">
-        <button class="play" id="useRevive">使用</button>
-        <button class="play" id="skipRevive">不使用</button>
-      </div>
+      <div class="title">准备就绪</div>
+      <div class="subtitle">点击下方按钮切换到游戏场景并开始坠落星星。</div>
+      <div class="actions"><button class="play" id="startBtn">启动游戏</button></div>
     </div>
   </div>
 
@@ -65,191 +53,107 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   <div class="overlay" id="over">
     <div class="card">
       <div class="title">游戏结束</div>
-      <div class="subtitle">本局：<b id="final">0</b> 秒<br>总积分：<b id="total">0</b></div>
+      <div class="subtitle">你存活了 <b id="final">0</b> 秒</div>
       <div class="actions">
         <button class="play" id="homeBtn">返回主页</button>
-        <button class="play" id="toShopBtn">积分升级</button>
+        <button class="play" id="restartBtn">再来一局</button>
       </div>
-    </div>
-  </div>
-
-  <!-- 商店 -->
-  <div class="overlay" id="shop">
-    <div class="card">
-      <div class="title">积分升级</div>
-      <div class="subtitle">积分：<b id="shopPts">0</b>　复活：<b id="shopRev">0</b>/3</div>
-      <div class="shop-item"><span>复活 +1（1000）</span><button class="shop-btn" id="buyRev">购买</button></div>
-      <div class="shop-item"><span>换色（500）</span><button class="shop-btn" id="buyClr">购买</button></div>
-      <div class="actions"><button class="play" id="closeShop">返回主页</button></div>
     </div>
   </div>
 </div>
 
 <script>
-/* ====== 持久化 ====== */
-const store = {
-  get pts(){return +(localStorage.getItem('ds_pts')||0)},
-  set pts(v){localStorage.setItem('ds_pts',String(Math.max(0,Math.floor(v))))},
-  get rev(){return +(localStorage.getItem('ds_rev')||0)},
-  set rev(v){localStorage.setItem('ds_rev',String(Math.min(3,Math.max(0,Math.floor(v)))))},
-  get color(){return localStorage.getItem('ds_color')||'#ffe06a'},
-  set color(v){localStorage.setItem('ds_color',v)}
-};
-
-/* ====== 画布尺寸 ====== */
-const cvs = document.getElementById('c');
-const ctx = cvs.getContext('2d',{alpha:false});
-let dpr = Math.max(1, Math.min(2, window.devicePixelRatio||1));
+/* ====== 设备像素与画布 ====== */
+const cvs=document.getElementById('c'), ctx=cvs.getContext('2d',{alpha:false});
+let dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));
 function fit(){
-  const r = cvs.getBoundingClientRect();
-  cvs.width  = Math.floor(r.width*dpr);
-  cvs.height = Math.floor(r.height*dpr);
+  const r=cvs.getBoundingClientRect();
+  cvs.width=Math.floor(r.width*dpr); cvs.height=Math.floor(r.height*dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0);
 }
-new ResizeObserver(fit).observe(cvs);
-window.addEventListener('orientationchange', fit);
-window.addEventListener('resize', fit);
-fit();
+new ResizeObserver(fit).observe(cvs); fit();
 
 /* ====== 小鸟贴图（内嵌 SVG） ====== */
-const birdImg = new Image();
-birdImg.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCAxMjggOTYiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMCIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmUwNmEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZmIyM2EiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48ZWxsaXBzZSBjeD0iNTYiIGN5PSI1MiIgcng9IjQwIiByeT0iMzAiIGZpbGw9InVybCgjZykiLz48ZWxsaXBzZSBjeD0iNDYiIGN5PSI1OCIgcng9IjE4IiByeT0iMTIiIGZpbGw9IiNmZmQzNWEiLz48Y2lyY2xlIGN4PSI4MiIgY3k9IjQ0IiByPSIxOCIgZmlsbD0idXJsKCNnKSIvPjxwb2x5Z29uIHBvaW50cz0iOTQsNDYgMTE0LDUyIDk0LDU4IiBmaWxsPSIjZmY3YTAwIi8+PGNpcmNsZSBjeD0iODYiIGN5PSI0MiIgcj0iNC4yIiBmaWxsPSIjMTcyMDMzIi8+PGVsbGlwc2UgY3g9IjQ4IiBjeT0iNTAiIHJ4PSIxMiIgcng9IjgiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjIiLz48L3N2Zz4=";
+const birdImg=new Image();
+birdImg.src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCAxMjggOTYiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMCIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmUwNmEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZmIyM2EiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48ZWxsaXBzZSBjeD0iNTYiIGN5PSI1MiIgcng9IjQwIiByeT0iMzAiIGZpbGw9InVybCgjZykiLz48ZWxsaXBzZSBjeD0iNDYiIGN5PSI1OCIgcng9IjE4IiByeT0iMTIiIGZpbGw9IiNmZmQzNWEiLz48Y2lyY2xlIGN4PSI4MiIgY3k9IjQ0IiByPSIxOCIgZmlsbD0idXJsKCNnKSIvPjxwb2x5Z29uIHBvaW50cz0iOTQsNDYgMTE0LDUyIDk0LDU4IiBmaWxsPSIjZmY3YTAwIi8+PGNpcmNsZSBjeD0iODYiIGN5PSI0MiIgcj0iNC4yIiBmaWxsPSIjMTcyMDMzIi8+PGVsbGlwc2UgY3g9IjQ4IiBjeT0iNTAiIHJ4PSIxMiIgcng9IjgiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjIiLz48L3N2Zz4=";
 
-/* ====== 状态 ====== */
-const bird = { x:150, y:150, r:18, vx:0, vy:0, color:store.color };
-const stars = [];
-const state = { running:false, paused:false, over:false, t:0, score:0, lastSpawn:0, spawnGap:900, speed:2.2 };
-
-const scoreEl = document.getElementById('score');
-const ptsEl   = document.getElementById('pts');
-ptsEl.textContent = store.pts;
-
-/* ====== 摇杆：无半径限制，速度按相对位移映射，并设最大速度 ====== */
-let origin = null;
-const joy = document.getElementById('joystick');
-const stick = document.getElementById('stick');
-const MAX_V = 12;     // 最大速度（像素/帧基准）
-const GAIN  = 0.10;   // 位移到速度的增益
+/* ====== 状态、对象 ====== */
+const state={running:false,paused:false,over:false,t:0,score:0,lastSpawn:0,spawnGap:900,speed:2.0};
+const stars=[];
+const bird={x:0,y:0,r:18,vx:0,vy:0};
 
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
 
+/* ====== 摇杆（无限位移，速度限制） ====== */
+let origin=null;
+const joy=document.getElementById('joystick'), stick=document.getElementById('stick');
+const MAX_V=10, GAIN=0.10;
+
 function pointerDown(e){
   const t=e.touches?e.touches[0]:e;
-  origin = {x:t.clientX,y:t.clientY};
-  joy.style.left = origin.x+'px';
-  joy.style.top  = origin.y+'px';
-  joy.style.display='block';
+  origin={x:t.clientX,y:t.clientY};
+  joy.style.left=origin.x+'px'; joy.style.top=origin.y+'px'; joy.style.display='block';
   e.preventDefault();
 }
 function pointerMove(e){
   if(!origin) return;
   const t=e.touches?e.touches[0]:e;
   const dx=t.clientX-origin.x, dy=t.clientY-origin.y;
-  // 摇杆小球不限制半径：显示真实位移
-  stick.style.transform = 'translate('+dx+'px,'+dy+'px)';
-  // 速度=位移*增益，并限制最大速度
-  bird.vx = clamp(dx*GAIN, -MAX_V, MAX_V);
-  bird.vy = clamp(dy*GAIN, -MAX_V, MAX_V);
+  stick.style.transform='translate('+dx+'px,'+dy+'px)';
+  bird.vx=clamp(dx*GAIN,-MAX_V,MAX_V);
+  bird.vy=clamp(dy*GAIN,-MAX_V,MAX_V);
 }
 function pointerUp(){
   origin=null; joy.style.display='none'; stick.style.transform='translate(0,0)';
   bird.vx=0; bird.vy=0;
 }
+
 cvs.addEventListener('touchstart',pointerDown,{passive:false});
-cvs.addEventListener('touchmove', pointerMove,{passive:true});
-window.addEventListener('touchend', pointerUp,{passive:true});
+cvs.addEventListener('touchmove',pointerMove,{passive:true});
+window.addEventListener('touchend',pointerUp,{passive:true});
 cvs.addEventListener('mousedown',pointerDown);
 window.addEventListener('mousemove',pointerMove);
-window.addEventListener('mouseup',  pointerUp);
+window.addEventListener('mouseup',pointerUp);
 
-/* ====== UI 按钮 ====== */
-const startOverlay = document.getElementById('start');
-const overOverlay  = document.getElementById('over');
-const reviveAsk    = document.getElementById('reviveAsk');
-const finalEl      = document.getElementById('final');
-const totalEl      = document.getElementById('total');
+/* ====== UI 切换 ====== */
+const confirmOv=document.getElementById('confirm');
+const launchOv=document.getElementById('launch');
+const overOv=document.getElementById('over');
+const scoreEl=document.getElementById('score');
+document.getElementById('confirmBtn').onclick=()=>{confirmOv.classList.remove('show');launchOv.classList.add('show')};
+document.getElementById('startBtn').onclick=()=>{launchOv.classList.remove('show');startGame()};
+document.getElementById('homeBtn').onclick=()=>{hideAll();confirmOv.classList.add('show')};
+document.getElementById('restartBtn').onclick=()=>{hideAll();startGame()};
+document.getElementById('pauseBtn').onclick=()=>{if(!state.running||state.over)return;state.paused=!state.paused;if(!state.paused){last=performance.now();requestAnimationFrame(loop);}};
 
-document.getElementById('startBtn').onclick = ()=>{ hideAll(); startGame(); };
-document.getElementById('pauseBtn').onclick = ()=>{
-  if(!state.running||state.over) return;
-  state.paused=!state.paused;
-  if(!state.paused){ last=performance.now(); loop(last); }
-};
-document.getElementById('shopBtn').onclick = ()=> showShop();
-document.getElementById('homeBtn').onclick = ()=>{ hideAll(); startOverlay.classList.add('show'); };
-document.getElementById('toShopBtn').onclick = ()=> showShop();
-document.getElementById('closeShop').onclick = ()=>{ hideAll(); startOverlay.classList.add('show'); };
+function hideAll(){[confirmOv,launchOv,overOv].forEach(el=>el.classList.remove('show'))}
 
-document.getElementById('useRevive').onclick = ()=>{
-  if(store.rev>0){
-    store.rev -= 1; refreshShopHUD();
-    hideAll();
-    // 清掉身边的星星，避免刚复活立刻再撞
-    for(let i=stars.length-1;i>=0;i--) if(Math.abs(stars[i].y-bird.y)<120) stars.splice(i,1);
-    state.over=false; state.running=true; last=performance.now(); loop(last);
-  }
-};
-document.getElementById('skipRevive').onclick = ()=>{ hideAll(); gameOver(); };
-
-/* ====== 商店 ====== */
-const shop = document.getElementById('shop');
-const shopPts = document.getElementById('shopPts');
-const shopRev = document.getElementById('shopRev');
-function refreshShopHUD(){ ptsEl.textContent=store.pts; shopPts.textContent=store.pts; shopRev.textContent=store.rev; }
-refreshShopHUD();
-
-document.getElementById('buyRev').onclick = ()=>{
-  if(store.rev>=3) return alert('已达上限（3次）');
-  if(store.pts<1000) return alert('积分不足');
-  store.pts-=1000; store.rev+=1; refreshShopHUD(); alert('已购买 1 次复活');
-};
-document.getElementById('buyClr').onclick = ()=>{
-  if(store.pts<500) return alert('积分不足');
-  store.pts-=500;
-  const colors=['#ffe06a','#ff9c2f','#ff5e5e','#72f1b8','#66a6ff','#b889ff','#ffd1dc','#b8ff6a','#ffffff','#00e0ff','#ffa600','#90ee90'];
-  store.color = colors[Math.floor(Math.random()*colors.length)];
-  bird.color  = store.color;
-  refreshShopHUD(); alert('已换色！');
-};
-
-function showShop(){ hideAll(); refreshShopHUD(); shop.classList.add('show'); }
-function hideAll(){ [startOverlay, overOverlay, shop, reviveAsk].forEach(el=>el.classList.remove('show')); }
-
-/* ====== 游戏主逻辑 ====== */
-function startGame(){
-  state.running=true; state.paused=false; state.over=false;
-  state.t=0; state.score=0; state.lastSpawn=0; state.spawnGap=900; state.speed=2.2;
-  stars.length=0;
-  // 初始化小鸟位置/大小
-  bird.r = Math.max(14, Math.min(24, Math.floor(Math.min(cvs.clientWidth,cvs.clientHeight)/22)));
-  bird.x = cvs.clientWidth/2; bird.y = cvs.clientHeight/2;
-  last = performance.now(); loop(last);
-}
-
-function spawnWave(){
-  const maxPer=3;
-  const count = 1+Math.floor(Math.random()*maxPer);
-  const margin=24;
-  const laneW = Math.max(60, Math.min(130, cvs.clientWidth/5));
-  const lanes = Math.max(3, Math.floor((cvs.clientWidth-2*margin)/laneW));
-  const used  = new Set();
+/* ====== 生成星星：一排（<=4个） ====== */
+function spawnRow(){
+  const maxPerRow=4;
+  const count=1+Math.floor(Math.random()*maxPerRow); // 1..4
+  const margin=20;
+  const lanes=Math.max(4,Math.floor(cvs.clientWidth/80)); // 自适应列数
+  const used=new Set();
   for(let i=0;i<count;i++){
     let lane=Math.floor(Math.random()*lanes), guard=0;
     while(used.has(lane)&&guard++<10) lane=Math.floor(Math.random()*lanes);
     used.add(lane);
-    const x = margin + lane*((cvs.clientWidth-2*margin)/lanes) + ((cvs.clientWidth-2*margin)/lanes)/2;
-    const size = 10 + Math.floor(Math.random()*8);
-    stars.push({x:x, y:-size*2, size:size, vy: state.speed + Math.random()*1.5, rot: Math.random()*Math.PI, spin:(Math.random()*0.04-0.02)});
+    const laneW=(cvs.clientWidth-2*margin)/lanes;
+    const x=margin + lane*laneW + laneW/2;
+    const size=10+Math.random()*10;
+    stars.push({x:x,y:-size*2,size:size,vy:state.speed+Math.random()*1.6,rot:Math.random()*Math.PI,spin:(Math.random()*0.04-0.02)});
   }
 }
 
+/* ====== 绘制 ====== */
 function drawStar(x,y,r,rot){
   ctx.save(); ctx.translate(x,y); ctx.rotate(rot);
   ctx.beginPath();
   for(let i=0;i<5;i++){
     const a=i*(Math.PI*2)/5 - Math.PI/2;
     const ox=Math.cos(a)*r, oy=Math.sin(a)*r;
-    const ia=a+Math.PI/5; const ix=Math.cos(ia)*r*0.5, iy=Math.sin(ia)*r*0.5;
+    const ia=a+Math.PI/5, ix=Math.cos(ia)*r*0.5, iy=Math.sin(ia)*r*0.5;
     if(i===0) ctx.moveTo(ox,oy); else ctx.lineTo(ox,oy);
     ctx.lineTo(ix,iy);
   }
@@ -258,54 +162,55 @@ function drawStar(x,y,r,rot){
   g.addColorStop(0,'#ffe99a'); g.addColorStop(0.6,'#ffd158'); g.addColorStop(1,'#ff9c2f');
   ctx.fillStyle=g; ctx.fill(); ctx.restore();
 }
-
 function drawBird(){
   const w=bird.r*2.6,h=bird.r*2;
-  ctx.drawImage(birdImg, bird.x-w/2, bird.y-h/2, w, h);
-  // 颜色叠加
-  ctx.save(); ctx.globalCompositeOperation='source-atop'; ctx.globalAlpha=0.25; ctx.fillStyle=bird.color;
-  ctx.fillRect(bird.x-w/2, bird.y-h/2, w, h); ctx.restore();
+  ctx.drawImage(birdImg,bird.x-w/2,bird.y-h/2,w,h);
 }
 
-function gameOver(){
-  store.pts += state.score; // 加积分
-  refreshShopHUD();
-  finalEl.textContent = state.score;
-  totalEl.textContent = store.pts;
-  overOverlay.classList.add('show');
+/* ====== 游戏开始 ====== */
+function startGame(){
+  state.running=true; state.over=false; state.paused=false;
+  state.t=0; state.score=0; state.lastSpawn=0; state.spawnGap=900; state.speed=2.0;
+  stars.length=0;
+  // 小鸟半径与初始位置（距离底部 1/10 处）
+  bird.r=Math.max(14,Math.min(24,Math.floor(Math.min(cvs.clientWidth,cvs.clientHeight)/22)));
+  bird.x=cvs.clientWidth/2;
+  bird.y=cvs.clientHeight - Math.floor(cvs.clientHeight/10);
+  last=performance.now(); requestAnimationFrame(loop);
 }
 
+/* ====== 主循环 ====== */
 let last=performance.now();
 function loop(now){
   if(!state.running) return;
-  const dt = Math.min(50, now-last); last=now;
+  const dt=Math.min(50,now-last); last=now;
   if(state.paused) return;
 
   // 计分
-  state.t += dt;
-  const sec = Math.floor(state.t/1000);
-  if(sec!==state.score){ state.score=sec; scoreEl.textContent=sec; }
+  state.t+=dt;
+  const s=Math.floor(state.t/1000);
+  if(s!==state.score){state.score=s; scoreEl.textContent=s;}
 
-  // 难度渐进 + 生成星星
-  if(state.t%2000 < dt){ state.speed=Math.min(8,state.speed+0.15); state.spawnGap=Math.max(420,state.spawnGap-20); }
-  if(now - state.lastSpawn > state.spawnGap){ spawnWave(); state.lastSpawn = now; }
+  // 生成 + 难度
+  if(state.t%2000<dt){ state.speed=Math.min(8,state.speed+0.15); state.spawnGap=Math.max(420,state.spawnGap-20); }
+  if(now-state.lastSpawn>state.spawnGap){ spawnRow(); state.lastSpawn=now; }
 
-  // 位置更新（dt 校正）
-  bird.x = clamp(bird.x + bird.vx * (dt/16), bird.r, cvs.clientWidth  - bird.r);
-  bird.y = clamp(bird.y + bird.vy * (dt/16), bird.r, cvs.clientHeight - bird.r);
+  // 移动（带 dt 校正）
+  bird.x=clamp(bird.x + bird.vx*(dt/16), bird.r, cvs.clientWidth-bird.r);
+  bird.y=clamp(bird.y + bird.vy*(dt/16), bird.r, cvs.clientHeight-bird.r);
 
   // 渲染
   ctx.clearRect(0,0,cvs.clientWidth,cvs.clientHeight);
   for(let i=stars.length-1;i>=0;i--){
-    const s=stars[i]; s.y+=s.vy; s.rot+=s.spin;
+    const s=stars[i];
+    s.y+=s.vy; s.rot+=s.spin;
     drawStar(s.x,s.y,s.size,s.rot);
     if(s.y - s.size > cvs.clientHeight){ stars.splice(i,1); continue; }
-    // 碰撞（圆-圆近似）
     const dx=s.x-bird.x, dy=s.y-bird.y, rr=(s.size*0.9+bird.r);
-    if(dx*dx+dy*dy<=rr*rr){
+    if(dx*dx+dy*dy<=rr*rr){ // 撞到
       state.running=false; state.over=true;
-      if(store.rev>0){ document.getElementById('reviveLeft').textContent=store.rev; reviveAsk.classList.add('show'); }
-      else{ gameOver(); }
+      document.getElementById('final').textContent=state.score;
+      overOv.classList.add('show');
       return;
     }
   }
@@ -314,8 +219,8 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 
-/* 切后台自动暂停 */
-document.addEventListener('visibilitychange',()=>{ if(document.hidden && state.running && !state.paused){ state.paused=true; }});
+/* 切后台自动暂停，避免丢帧爆速 */
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && state.running && !state.paused){ state.paused=true; } });
 </script>
 </body>
 </html>
