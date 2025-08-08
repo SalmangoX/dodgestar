@@ -2,539 +2,209 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-  <title>躲星星：小鸟别挨砸</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no"/>
+  <title>竖屏躲星星</title>
   <style>
-    html, body {
-      margin: 0; padding: 0; height: 100%; background: #0b1020; color: #fff; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Noto Sans","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-      -webkit-user-select: none; user-select: none; touch-action: none;
-    }
-    #wrap { position: relative; height: 100vh; overflow: hidden; }
-    canvas { display: block; width: 100%; height: 100%; background: radial-gradient(ellipse at top, #131a33 0%, #0b1020 60%); }
-    .hud {
-      position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 14px; pointer-events: none; font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,.5); z-index: 5;
-    }
-    .hud .btn {
-      pointer-events: auto; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 10px; padding: 8px 12px; font-size: 14px; letter-spacing: .5px;
-      backdrop-filter: blur(6px);
-    }
-    .overlay {
-      position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
-      background: rgba(0,0,0,.35); backdrop-filter: blur(2px); z-index: 10;
-    }
-    .overlay.show { display: flex; }
-    .card {
-      background: rgba(15,20,40,.92); border: 1px solid rgba(255,255,255,.12); border-radius: 16px; padding: 18px 16px; width: min(86vw, 460px);
-      box-shadow: 0 12px 30px rgba(0,0,0,.35);
-    }
-    .title { font-size: 22px; margin-bottom: 10px; text-align: center; }
-    .subtitle { font-size: 14px; opacity: .85; margin-bottom: 14px; text-align: center; }
-    .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-    .action-btn {
-      border: none; border-radius: 12px; padding: 12px 16px; font-weight: 700; font-size: 16px; cursor: pointer;
-      background: linear-gradient(180deg,#ffd35a,#ff9b2f); color: #2a1500; box-shadow: 0 8px 20px rgba(255,171,19,.35);
-    }
-    .action-btn.secondary { background: rgba(255,255,255,.1); color: #fff; box-shadow: none; border: 1px solid rgba(255,255,255,.15); }
-    .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 10px 0; }
-    .pill { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); border-radius: 999px; padding: 8px 12px; }
-    .hint { font-size: 12px; opacity: .8; margin-top: 6px; text-align: center; }
-    .credit { position: absolute; right: 10px; bottom: 8px; font-size: 11px; opacity: .55; z-index: 4; }
-    .shop-item { display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 12px; margin: 8px 0; }
-    .shop-item .name { font-weight: 700; }
-    .shop-item .desc { font-size: 12px; opacity: .8; }
-    .shop-item .cost { font-weight: 700; }
-    .label { font-size: 12px; opacity: .75; }
-    .color-dot { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(255,255,255,.6); cursor: pointer; }
-    .color-grid { display: grid; grid-template-columns: repeat(8, 24px); gap: 8px; justify-content: center; }
+    :root { --bg1:#0b1020; --bg2:#131a33; --txt:#fff; }
+    html,body { margin:0; padding:0; height:100%; background:var(--bg1); color:var(--txt); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif; }
+    #wrap { position:fixed; inset:0; overflow:hidden; background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg1) 60%); touch-action:none; }
+    canvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
+    .hud { position:absolute; left:0; right:0; top:0; display:flex; justify-content:space-between; padding:10px 14px; z-index:5; font-weight:600; text-shadow:0 2px 8px rgba(0,0,0,.5);}
+    .btn { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff; border-radius:10px; padding:8px 12px; }
+    .overlay { position:absolute; inset:0; display:none; align-items:center; justify-content:center; z-index:10; background:rgba(0,0,0,.35); backdrop-filter:blur(2px);}
+    .overlay.show { display:flex; }
+    .card { width:min(88vw,460px); background:rgba(20,26,48,.95); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:18px; text-align:center; }
+    .title { font-size:22px; margin-bottom:10px; }
+    .subtitle { opacity:.85; font-size:14px; margin-bottom:12px; }
+    .actions { display:flex; gap:10px; justify-content:center; }
+    .play { border:none; border-radius:12px; padding:12px 16px; font-size:16px; font-weight:700; background:linear-gradient(180deg,#ffd35a,#ff9b2f); color:#2a1500; }
+    .rotate-tip { position:absolute; inset:0; display:none; align-items:center; justify-content:center; text-align:center; padding:20px; z-index:11; }
+    .rotate-tip.show { display:flex; }
   </style>
 </head>
 <body>
-  <div id="wrap">
-    <canvas id="game"></canvas>
-    <div class="hud">
-      <div>
-        生存分：<span id="score">0</span>
-        <span class="pill">总积分：<span id="points">0</span></span>
-      </div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn" id="shopBtn">商店</button>
-        <button class="btn" id="pauseBtn">暂停</button>
-      </div>
-    </div>
-
-    <!-- Start Overlay -->
-    <div class="overlay show" id="startOverlay">
-      <div class="card">
-        <div class="title">躲星星：小鸟别挨砸</div>
-        <div class="subtitle">按住屏幕左右拖动小鸟，躲开从天而降的星星。<br/>每生存 1 秒 +1 分。可以用积分在商店升级。</div>
-        <div class="row">
-          <div class="pill">总积分：<span id="pointsStart">0</span></div>
-          <div class="pill">复活次数：<span id="revivesStart">0</span>/3</div>
-        </div>
-        <div class="actions">
-          <button class="action-btn" id="startBtn">开始游戏</button>
-          <button class="action-btn secondary" id="openShopFromStart">打开商店</button>
-        </div>
-        <div class="hint">若在微信内无声或看不到按钮，先点一下屏幕再开始。</div>
-      </div>
-    </div>
-
-    <!-- Game Over Overlay -->
-    <div class="overlay" id="gameOverOverlay">
-      <div class="card">
-        <div class="title">游戏结束</div>
-        <div class="subtitle">本局生存分：<b id="finalScore">0</b><br/>已累计积分：<b id="pointsAfter">0</b></div>
-        <div class="actions">
-          <button class="action-btn" id="restartBtn">重新开始</button>
-          <button class="action-btn secondary" id="openShopFromOver">打开商店</button>
-          <button class="action-btn secondary" id="shareBtn">分享</button>
-        </div>
-        <div class="hint">可在商店用 1000 积分购买复活（最多 3 次），或用 500 积分购买一次小鸟调色机会。</div>
-      </div>
-    </div>
-
-    <!-- Revive Prompt Overlay -->
-    <div class="overlay" id="reviveOverlay">
-      <div class="card">
-        <div class="title">是否使用复活？</div>
-        <div class="subtitle">你还有 <b id="reviveLeft">0</b> 次复活机会。</div>
-        <div class="actions">
-          <button class="action-btn" id="useReviveBtn">使用复活</button>
-          <button class="action-btn secondary" id="noReviveBtn">算了</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Shop Overlay -->
-    <div class="overlay" id="shopOverlay">
-      <div class="card">
-        <div class="title">商店</div>
-        <div class="row">
-          <div class="pill">总积分：<span id="pointsShop">0</span></div>
-          <div class="pill">复活：<span id="revivesShop">0</span>/3</div>
-        </div>
-        <div class="shop-item">
-          <div>
-            <div class="name">购买复活次数</div>
-            <div class="desc">每次 1000 积分，最多 3 次。死亡时可立即复活继续游戏。</div>
-          </div>
-          <div>
-            <div class="cost">1000</div>
-            <button class="action-btn" id="buyReviveBtn">购买</button>
-          </div>
-        </div>
-        <div class="shop-item">
-          <div>
-            <div class="name">小鸟调色</div>
-            <div class="desc">花费 500 积分，获得一次改颜色机会。</div>
-            <div class="label">预览：</div>
-            <div class="color-grid" id="colorGrid"></div>
-          </div>
-          <div>
-            <div class="cost">500</div>
-            <button class="action-btn" id="buyColorBtn">购买一次</button>
-          </div>
-        </div>
-        <div class="shop-item">
-          <div>
-            <div class="name">更多升级（预留）</div>
-            <div class="desc">之后会加入速度减缓、护盾等功能。</div>
-          </div>
-          <button class="action-btn secondary" disabled>敬请期待</button>
-        </div>
-        <div class="actions">
-          <button class="action-btn" id="closeShopBtn">关闭</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="credit">H5 · 可在微信内打开</div>
+<div id="wrap">
+  <canvas id="c"></canvas>
+  <div class="hud">
+    <div>得分 <span id="score">0</span></div>
+    <button class="btn" id="pause">暂停</button>
   </div>
+  <div class="overlay show" id="start">
+    <div class="card">
+      <div class="title">竖屏躲星星</div>
+      <div class="subtitle">用手指在屏幕任何位置左右滑动/拖动，小鸟会跟随移动（不会飞出屏幕）。电脑上用鼠标移动来模拟触控。</div>
+      <div class="actions"><button class="play" id="playBtn">开始</button></div>
+      <div style="font-size:12px;opacity:.8;margin-top:8px;">若无声或看不到按钮，请先点一下屏幕以解锁音频与控件。</div>
+    </div>
+  </div>
+  <div class="overlay" id="gameover">
+    <div class="card">
+      <div class="title">游戏结束</div>
+      <div class="subtitle">你的得分：<b id="final">0</b></div>
+      <div class="actions"><button class="play" id="again">再来一局</button></div>
+    </div>
+  </div>
+  <div class="rotate-tip" id="rotateTip">
+    <div>
+      <div style="font-size:26px;margin-bottom:8px;">请切换为竖屏</div>
+      <div style="opacity:.8;">为了更好的体验，请把手机竖起来（Portrait）。</div>
+    </div>
+  </div>
+</div>
 
-  <script>
-    // ===== Persistent storage (points & revives & color) =====
-    const store = {
-      get points(){ return +(localStorage.getItem('ds_points')||0); },
-      set points(v){ localStorage.setItem('ds_points', String(Math.max(0,Math.floor(v)))); },
-      get revives(){ return +(localStorage.getItem('ds_revives')||0); },
-      set revives(v){ localStorage.setItem('ds_revives', String(Math.min(3, Math.max(0, Math.floor(v))))); },
-      get color(){ return localStorage.getItem('ds_color') || '#ffe06a'; },
-      set color(v){ localStorage.setItem('ds_color', v); },
-      get colorTickets(){ return +(localStorage.getItem('ds_color_tickets')||0); },
-      set colorTickets(v){ localStorage.setItem('ds_color_tickets', String(Math.max(0, Math.floor(v)))); },
-    };
+<script>
+  // ===== orientation guard (show tip if landscape) =====
+  const rotateTip = document.getElementById('rotateTip');
+  function checkOrientation() { rotateTip.classList.toggle('show', window.innerWidth > window.innerHeight); }
+  window.addEventListener('resize', checkOrientation, {passive:true}); checkOrientation();
 
-    function updateAllPointsUI(){
-      document.getElementById('points').textContent = store.points;
-      document.getElementById('pointsStart').textContent = store.points;
-      document.getElementById('pointsShop').textContent = store.points;
-      document.getElementById('revivesStart').textContent = store.revives;
-      document.getElementById('revivesShop').textContent = store.revives;
+  // ===== canvas setup =====
+  const cvs = document.getElementById('c');
+  const ctx = cvs.getContext('2d', {alpha:false});
+  let W=0,H=0,dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));
+  function fit() { const r=cvs.getBoundingClientRect(); W=Math.floor(r.width*dpr); H=Math.floor(r.height*dpr); cvs.width=W; cvs.height=H; ctx.setTransform(dpr,0,0,dpr,0,0); }
+  new ResizeObserver(fit).observe(cvs); fit();
+
+  // ===== audio =====
+  let audio=null; function unlockAudio(){ if(!audio){ const AC=window.AudioContext||window.webkitAudioContext; audio=new AC(); }}
+  function beep(f=660,d=0.05,t='sine',g=0.04){ if(!audio) return; const t0=audio.currentTime; const o=audio.createOscillator(); const gn=audio.createGain(); o.type=t; o.frequency.value=f; gn.gain.value=g; gn.gain.exponentialRampToValueAtTime(0.0001, t0+d+0.02); o.connect(gn).connect(audio.destination); o.start(); o.stop(t0+d+0.03); }
+
+  // ===== bird sprite image =====
+  const birdImg = new Image();
+  birdImg.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCAxMjggOTYiPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmUwNmEiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmZiMjNhIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8ZWxsaXBzZSBjeD0iNTYiIGN5PSI1MiIgcng9IjQwIiByeT0iMzAiIGZpbGw9InVybCgjZykiLz4KICA8ZWxsaXBzZSBjeD0iNDYiIGN5PSI1OCIgcng9IjE4IiByeT0iMTIiIGZpbGw9IiNmZmQzNWEiLz4KICA8Y2lyY2xlIGN4PSI4MiIgY3k9IjQ0IiByPSIxOCIgZmlsbD0idXJsKCNnKSIvPgogIDxwb2x5Z29uIHBvaW50cz0iOTQsNDYgMTE0LDUyIDk0LDU4IiBmaWxsPSIjZmY3YTAwIi8+CiAgPGNpcmNsZSBjeD0iODYiIGN5PSI0MiIgcj0iNC4yIiBmaWxsPSIjMTcyMDMzIi8+CiAgPGVsbGlwc2UgY3g9IjQ4IiBjeT0iNTAiIHJ4PSIxMiIgcnk9IjgiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjIiLz4KPC9zdmc+";
+  const bird = { x: 100, y: 0, r: 18, targetX: 100 };
+
+  // ===== game state =====
+  const stars = [];
+  const state = { running:false, paused:false, over:false, t:0, speed:2.2, spawn:900, last:0, score:0 };
+
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+
+  // spawn waves, max 3 in a row
+  function spawn() { 
+    const max=3, cnt=1+Math.floor(Math.random()*max);
+    const margin=24;
+    const laneW=Math.max(50, Math.min(120, cvs.clientWidth/6));
+    const lanes=Math.max(3, Math.floor(cvs.clientWidth/laneW));
+    const used=new Set();
+    for(let i=0;i<cnt;i++){
+      let lane=Math.floor(Math.random()*lanes), guard=0;
+      while(used.has(lane)&&guard++<10) lane=Math.floor(Math.random()*lanes);
+      used.add(lane);
+      const x = margin + lane*((cvs.clientWidth-2*margin)/lanes) + ((cvs.clientWidth-2*margin)/lanes)/2;
+      const size=10+Math.floor(Math.random()*8);
+      stars.push({ x, y:-size*2, size, vy: state.speed + Math.random()*1.5, rot: Math.random()*Math.PI, spin: (Math.random()*0.04-0.02) });
+      beep(880,0.04,'triangle',0.03);
+    }
+  }
+
+  // draw helpers
+  function drawStar(x,y,r,rot){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(rot);
+    ctx.beginPath();
+    for(let i=0;i<5;i++){
+      const a=i*(Math.PI*2)/5 - Math.PI/2;
+      const ox=Math.cos(a)*r, oy=Math.sin(a)*r;
+      const ia=a+Math.PI/5;
+      const ix=Math.cos(ia)*r*0.5, iy=Math.sin(ia)*r*0.5;
+      if(i===0) ctx.moveTo(ox,oy); else ctx.lineTo(ox,oy);
+      ctx.lineTo(ix,iy);
+    }
+    ctx.closePath();
+    const g=ctx.createRadialGradient(0,0,r*0.1,0,0,r);
+    g.addColorStop(0,'#ffe99a'); g.addColorStop(0.6,'#ffd158'); g.addColorStop(1,'#ff9c2f');
+    ctx.fillStyle=g; ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBird(){
+    const w=bird.r*2.6, h=bird.r*2;
+    ctx.drawImage(birdImg, bird.x - w/2, bird.y - h/2, w, h);
+  }
+
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+  // input: touch anywhere; desktop mouse move/click
+  let dragging=false;
+  function toLocalX(e){ const r=cvs.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left; return clamp(x, bird.r+4, r.width-bird.r-4); }
+  function onDown(e){ unlockAudio(); dragging=true; bird.targetX=toLocalX(e); e.preventDefault(); }
+  function onMove(e){ if(dragging) bird.targetX=toLocalX(e); }
+  function onUp(){ dragging=false; }
+
+  cvs.addEventListener('touchstart', onDown, {passive:false});
+  cvs.addEventListener('touchmove', onMove, {passive:true});
+  window.addEventListener('touchend', onUp, {passive:true});
+  cvs.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+
+  window.addEventListener('keydown', (e)=>{ if(e.key===' ') togglePause(); if(e.key==='ArrowLeft') bird.targetX-=18; if(e.key==='ArrowRight') bird.targetX+=18; });
+
+  // overlays
+  const start = document.getElementById('start');
+  const over = document.getElementById('gameover');
+  const pauseBtn = document.getElementById('pause');
+  const playBtn = document.getElementById('playBtn');
+  const again = document.getElementById('again');
+  const scoreEl = document.getElementById('score');
+  const finalEl = document.getElementById('final');
+
+  function hideAll(){ start.classList.remove('show'); over.classList.remove('show'); }
+  function reset(){ state.running=true; state.paused=false; state.over=false; state.t=0; state.speed=2.2; state.spawn=900; state.last=0; state.score=0; stars.length=0; scoreEl.textContent='0'; bird.r=Math.max(16, Math.min(24, Math.floor(Math.min(cvs.clientWidth, cvs.clientHeight)/22))); bird.x=cvs.clientWidth/2; bird.targetX=bird.x; bird.y=cvs.clientHeight - bird.r*2.2; }
+
+  playBtn.onclick = ()=>{ unlockAudio(); hideAll(); reset(); last=performance.now(); requestAnimationFrame(loop); }
+  again.onclick = ()=>{ hideAll(); reset(); last=performance.now(); requestAnimationFrame(loop); }
+  pauseBtn.onclick = ()=>{ if(!state.running||state.over) return; state.paused=!state.paused; pauseBtn.textContent = state.paused?'继续':'暂停'; if(!state.paused){ last=performance.now(); requestAnimationFrame(loop); } };
+
+  // loop
+  let last = performance.now();
+  function loop(now){
+    if(!state.running) return;
+    const dt = Math.min(50, now-last); last=now;
+    if(state.paused) return;
+
+    state.t += dt;
+    const newScore = Math.floor(state.t/1000);
+    if(newScore!==state.score){ state.score=newScore; scoreEl.textContent=String(state.score); }
+
+    if(state.t % 2000 < dt){ state.speed=Math.min(8, state.speed+0.15); state.spawn=Math.max(420, state.spawn-20); }
+    if(now - state.last > state.spawn){ spawn(); state.last=now; }
+
+    bird.x += (bird.targetX - bird.x)*0.25;
+
+    ctx.clearRect(0,0,cvs.width,cvs.height);
+
+    for(let i=stars.length-1;i>=0;i--){
+      const s=stars[i];
+      s.y += s.vy; s.rot += s.spin;
+      drawStar(s.x, s.y, s.size, s.rot);
+      if(s.y - s.size > cvs.height){ stars.splice(i,1); continue; }
+      const bw = bird.r*2.2, bh = bird.r*1.7;
+      const rx = bird.x - bw/2, ry = bird.y - bh/2, rw=bw, rh=bh;
+      const cx=s.x, cy=s.y, cr=s.size*0.9;
+      const clx = Math.max(rx, Math.min(cx, rx+rw));
+      const cly = Math.max(ry, Math.min(cy, ry+rh));
+      const dx=cx-clx, dy=cy-cly;
+      if(dx*dx+dy*dy <= cr*cr){ hit(); break; }
     }
 
-    // ===== Canvas setup =====
-    const cvs = document.getElementById('game');
-    const ctx = cvs.getContext('2d', { alpha: false });
-    let W = 0, H = 0, dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    function resize() {
-      const rect = cvs.getBoundingClientRect();
-      W = Math.floor(rect.width * dpr);
-      H = Math.floor(rect.height * dpr);
-      cvs.width = W; cvs.height = H;
-      ctx.setTransform(dpr,0,0,dpr,0,0);
-    }
-    window.addEventListener('resize', resize, { passive: true });
-    resize();
+    ctx.save(); ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(0, bird.y + bird.r + 8); ctx.lineTo(cvs.width, bird.y + bird.r + 8); ctx.stroke(); ctx.restore();
 
-    // ===== Audio =====
-    let audioCtx = null;
-    function ensureAudio() {
-      if (!audioCtx) {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        audioCtx = new AC();
-      }
-    }
-    function beep({freq=440, duration=0.08, type='sine', gain=0.05, decay=0.02}) {
-      if (!audioCtx) return;
-      const t0 = audioCtx.currentTime;
-      const osc = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, t0);
-      g.gain.setValueAtTime(gain, t0);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration + decay);
-      osc.connect(g).connect(audioCtx.destination);
-      osc.start();
-      osc.stop(t0 + duration + decay + 0.02);
-    }
-    function chordHit() {
-      beep({freq: 220, duration: 0.12, type:'square', gain:0.06});
-      setTimeout(()=>beep({freq: 180, duration: 0.12, type:'square', gain:0.06}), 20);
-      setTimeout(()=>beep({freq: 120, duration: 0.20, type:'triangle', gain:0.07}), 40);
-    }
-    function whoosh() { beep({freq: 880, duration: 0.05, type:'triangle', gain:0.03}); }
+    drawBird();
 
-    // ===== Game state =====
-    const state = {
-      running: false, paused: false, over: false,
-      timeMs: 0, scoreSec: 0,
-      speed: 2.2,
-      spawnGapMs: 900,
-      lastSpawn: 0,
-    };
+    if(state.running && !state.over) requestAnimationFrame(loop);
+  }
 
-    // Player (bird)
-    const bird = { x: 100, y: 0, r: 16, targetX: 100, color: store.color };
+  function hit(){
+    state.over=true; state.running=false; beep(220,0.1,'square',0.06);
+    setTimeout(()=>{ finalEl.textContent=state.score; over.classList.add('show'); }, 150);
+  }
 
-    // Entities
-    const stars = [];
-
-    function resetGame() {
-      state.running = true;
-      state.paused = false;
-      state.over = false;
-      state.timeMs = 0;
-      state.scoreSec = 0;
-      state.speed = 2.2;
-      state.spawnGapMs = 900;
-      state.lastSpawn = 0;
-      stars.length = 0;
-      document.getElementById('score').textContent = '0';
-      bird.r = Math.max(14, Math.min(18, Math.floor(Math.min(W, H) / 25)));
-      bird.x = W/2; bird.targetX = W/2;
-      bird.y = H - bird.r*2.2;
-      renderBackdrop();
-      hideAllOverlays();
-    }
-
-    function createStar(x, speed) {
-      const size = Math.floor(Math.random()*8)+10;
-      return { x, y: -size*2, size, vy: speed + Math.random()*1.5, rot: Math.random()*Math.PI, spin: (Math.random()*0.04-0.02), hit:false };
-    }
-
-    // spawn wave (max 3 in a row)
-    function spawnWave() {
-      const maxPerWave = 3;
-      const count = 1 + Math.floor(Math.random()*maxPerWave);
-      const margin = 24;
-      const laneW = Math.max(50, Math.min(120, W/6));
-      const lanes = Math.max(3, Math.floor(W / laneW));
-      const used = new Set();
-      for (let i=0;i<count;i++) {
-        let lane = Math.floor(Math.random()*lanes);
-        let guard = 0;
-        while (used.has(lane) && guard++ < 10) lane = Math.floor(Math.random()*lanes);
-        used.add(lane);
-        const x = margin + lane * ((W-2*margin)/lanes) + ((W-2*margin)/lanes)/2;
-        stars.push(createStar(x, state.speed));
-        whoosh();
-      }
-    }
-
-    // Draw helpers
-    function drawStar(x,y,r,rotation) {
-      ctx.save();
-      ctx.translate(x,y);
-      ctx.rotate(rotation);
-      ctx.beginPath();
-      for (let i=0;i<5;i++) {
-        const angle = i * (Math.PI*2)/5 - Math.PI/2;
-        const outerX = Math.cos(angle) * r;
-        const outerY = Math.sin(angle) * r;
-        const innerAngle = angle + (Math.PI/5);
-        const innerX = Math.cos(innerAngle) * r * 0.5;
-        const innerY = Math.sin(innerAngle) * r * 0.5;
-        if (i===0) ctx.moveTo(outerX, outerY);
-        else ctx.lineTo(outerX, outerY);
-        ctx.lineTo(innerX, innerY);
-      }
-      ctx.closePath();
-      const grad = ctx.createRadialGradient(0,0, r*0.1, 0,0, r);
-      grad.addColorStop(0, '#ffe99a');
-      grad.addColorStop(0.6, '#ffd158');
-      grad.addColorStop(1, '#ff9c2f');
-      ctx.fillStyle = grad;
-      ctx.fill();
-      ctx.restore();
-    }
-
-    function drawBird() {
-      ctx.save();
-      ctx.translate(bird.x, bird.y);
-      ctx.beginPath();
-      ctx.arc(0, 0, bird.r, 0, Math.PI*2);
-      ctx.fillStyle = bird.color;
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(bird.r*0.2, -bird.r*0.1);
-      ctx.lineTo(bird.r*0.8, 0);
-      ctx.lineTo(bird.r*0.2, bird.r*0.1);
-      ctx.closePath();
-      ctx.fillStyle = '#ff7a00';
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(-bird.r*0.25, -bird.r*0.25, bird.r*0.16, 0, Math.PI*2);
-      ctx.fillStyle = '#172033';
-      ctx.fill();
-      ctx.restore();
-    }
-
-    // Backdrop
-    const bgStars = Array.from({length: 60}, () => ({
-      x: Math.random()*window.innerWidth,
-      y: Math.random()*window.innerHeight,
-      r: Math.random()*1.5 + 0.5,
-      tw: Math.random()*Math.PI*2
-    }));
-    function renderBackdrop() {
-      ctx.save();
-      ctx.clearRect(0,0,W,H);
-      bgStars.forEach(s => {
-        s.tw += 0.03;
-        const a = 0.5 + Math.sin(s.tw)*0.3;
-        ctx.globalAlpha = a;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-        ctx.fillStyle = '#cde2ff';
-        ctx.fill();
-      });
-      ctx.globalAlpha = 1;
-      ctx.restore();
-    }
-
-    function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
-    let dragging = false;
-    function onPointerDown(e) { ensureAudio(); dragging = true; moveToEvent(e); }
-    function onPointerMove(e) { if (dragging) moveToEvent(e); }
-    function onPointerUp() { dragging = false; }
-    function moveToEvent(e) {
-      const rect = cvs.getBoundingClientRect();
-      const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-      bird.targetX = clamp(x, bird.r + 4, rect.width - bird.r - 4);
-    }
-    cvs.addEventListener('touchstart', onPointerDown, { passive: true });
-    cvs.addEventListener('touchmove', onPointerMove, { passive: true });
-    window.addEventListener('touchend', onPointerUp, { passive: true });
-    cvs.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('mousemove', onPointerMove);
-    window.addEventListener('mouseup', onPointerUp);
-    window.addEventListener('keydown', (e)=>{
-      if (e.key === 'ArrowLeft') bird.targetX -= 18;
-      if (e.key === 'ArrowRight') bird.targetX += 18;
-      if (e.key === ' '){ togglePause(); }
-    });
-
-    function togglePause(){
-      if(!state.running || state.over) return;
-      state.paused = !state.paused;
-      document.getElementById('pauseBtn').textContent = state.paused ? '继续' : '暂停';
-      if (!state.paused) lastFrame = performance.now(), loop(lastFrame);
-    }
-
-    // Overlays control
-    const startOverlay = document.getElementById('startOverlay');
-    const gameOverOverlay = document.getElementById('gameOverOverlay');
-    const reviveOverlay = document.getElementById('reviveOverlay');
-    const shopOverlay = document.getElementById('shopOverlay');
-    function hideAllOverlays(){
-      [startOverlay, gameOverOverlay, reviveOverlay, shopOverlay].forEach(el=>el.classList.remove('show'));
-    }
-
-    // Buttons
-    document.getElementById('pauseBtn').addEventListener('click', ()=>{ ensureAudio(); togglePause(); });
-    document.getElementById('startBtn').addEventListener('click', ()=>{ ensureAudio(); resetGame(); lastFrame = performance.now(); requestAnimationFrame(loop); });
-    document.getElementById('restartBtn').addEventListener('click', ()=>{ ensureAudio(); resetGame(); lastFrame = performance.now(); requestAnimationFrame(loop); });
-    document.getElementById('shareBtn').addEventListener('click', ()=>{
-      if (navigator.share) { navigator.share({ title: '躲星星：小鸟别挨砸', text: '来挑战我的生存分！', url: location.href }).catch(()=>{}); }
-      else { try { navigator.clipboard.writeText(location.href); alert('已复制链接，发给好友一起玩吧！'); } catch(e){ alert('请手动复制地址栏链接分享'); } }
-    });
-    document.getElementById('openShopFromStart').addEventListener('click', ()=>{ shopOverlay.classList.add('show'); });
-    document.getElementById('openShopFromOver').addEventListener('click', ()=>{ shopOverlay.classList.add('show'); });
-    document.getElementById('shopBtn').addEventListener('click', ()=>{ shopOverlay.classList.add('show'); });
-    document.getElementById('closeShopBtn').addEventListener('click', ()=>{ shopOverlay.classList.remove('show'); });
-
-    // Shop logic
-    const colors = ['#ffe06a','#ff9c2f','#ff5e5e','#72f1b8','#66a6ff','#b889ff','#ffd1dc','#b8ff6a','#ffffff','#00e0ff','#ffa600','#f4e04d','#c3f584','#ff7f50','#e0ffff','#90ee90'];
-    const colorGrid = document.getElementById('colorGrid');
-    colors.forEach(c=>{
-      const d=document.createElement('div'); d.className='color-dot'; d.style.background=c;
-      d.addEventListener('click', ()=>{
-        if (store.colorTickets>0) {
-          store.color = c; bird.color = c; store.colorTickets -= 1; updateAllPointsUI(); renderBackdrop();
-          alert('颜色已更换！剩余调色次数：'+store.colorTickets);
-        } else {
-          alert('请先购买一次调色机会（500 积分）');
-        }
-      });
-      colorGrid.appendChild(d);
-    });
-    document.getElementById('buyReviveBtn').addEventListener('click', ()=>{
-      if (store.revives>=3) return alert('已达上限（3 次）');
-      if (store.points<1000) return alert('积分不足（需要 1000）');
-      store.points -= 1000; store.revives += 1; updateAllPointsUI(); alert('已购买 1 次复活！');
-    });
-    document.getElementById('buyColorBtn').addEventListener('click', ()=>{
-      if (store.points<500) return alert('积分不足（需要 500）');
-      store.points -= 500; store.colorTickets += 1; updateAllPointsUI(); alert('已获得 1 次调色机会！');
-    });
-
-    // Revive flow
-    document.getElementById('useReviveBtn').addEventListener('click', ()=>{
-      if (store.revives<=0) return;
-      store.revives -= 1; updateAllPointsUI();
-      reviveOverlay.classList.remove('show');
-      state.over = false; state.running = true;
-      // give brief immunity window by clearing nearby stars
-      for (let i=stars.length-1;i>=0;i--) if (Math.abs(stars[i].y - bird.y) < 120) stars.splice(i,1);
-      lastFrame = performance.now(); requestAnimationFrame(loop);
-    });
-    document.getElementById('noReviveBtn').addEventListener('click', ()=>{
-      reviveOverlay.classList.remove('show');
-      showGameOver();
-    });
-
-    // Main loop
-    let lastFrame = performance.now();
-    function loop(now) {
-      if (!state.running) return;
-      const dt = Math.min(50, now - lastFrame);
-      lastFrame = now;
-      if (state.paused) return;
-
-      state.timeMs += dt;
-      const newScore = Math.floor(state.timeMs/1000);
-      if (newScore !== state.scoreSec) {
-        state.scoreSec = newScore;
-        document.getElementById('score').textContent = String(state.scoreSec);
-      }
-
-      if (state.timeMs % 2000 < dt) {
-        state.speed = Math.min(8, state.speed + 0.15);
-        state.spawnGapMs = Math.max(420, state.spawnGapMs - 20);
-      }
-
-      if (now - state.lastSpawn > state.spawnGapMs) {
-        spawnWave();
-        state.lastSpawn = now;
-      }
-
-      bird.x += (bird.targetX - bird.x)*0.22;
-
-      renderBackdrop();
-
-      for (let i = stars.length - 1; i >= 0; i--) {
-        const s = stars[i];
-        s.y += s.vy;
-        s.rot += s.spin;
-        drawStar(s.x, s.y, s.size, s.rot);
-        if (!s.hit) {
-          const r = s.size * 0.9;
-          if (circleRectHit(s.x, s.y, r, bird.x - bird.r, bird.y - bird.r, bird.r*2, bird.r*2)) {
-            s.hit = true;
-            onHit();
-            break;
-          }
-        }
-        if (s.y - s.size > H) stars.splice(i,1);
-      }
-
-      ctx.save();
-      ctx.strokeStyle = 'rgba(255,255,255,.08)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, bird.y + bird.r + 8);
-      ctx.lineTo(W, bird.y + bird.r + 8);
-      ctx.stroke();
-      ctx.restore();
-
-      drawBird();
-
-      if (state.running && !state.over) requestAnimationFrame(loop);
-    }
-
-    function circleRectHit(cx, cy, cr, rx, ry, rw, rh){
-      const closestX = clamp(cx, rx, rx+rw);
-      const closestY = clamp(cy, ry, ry+rh);
-      const dx = cx - closestX, dy = cy - closestY;
-      return (dx*dx + dy*dy) <= cr*cr;
-    }
-
-    function onHit() {
-      chordHit();
-      state.over = true; state.running = false;
-      if (store.revives > 0) {
-        document.getElementById('reviveLeft').textContent = store.revives;
-        reviveOverlay.classList.add('show');
-      } else {
-        showGameOver();
-      }
-    }
-
-    function showGameOver(){
-      // award points equal to survival seconds
-      store.points += state.scoreSec;
-      updateAllPointsUI();
-      document.getElementById('finalScore').textContent = state.scoreSec;
-      document.getElementById('pointsAfter').textContent = store.points;
-      gameOverOverlay.classList.add('show');
-    }
-
-    // Visibility handling
-    document.addEventListener('visibilitychange', ()=>{
-      if (document.hidden) {
-        if (state.running && !state.over && !state.paused) togglePause();
-      }
-    });
-
-    // init
-    function initUI(){
-      bird.color = store.color;
-      updateAllPointsUI();
-    }
-    initUI();
-  </script>
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ if(state.running && !state.over && !state.paused) pauseBtn.click(); } });
+</script>
 </body>
 </html>
-update to new game with points & shop
+update: portrait mobile touch control version
